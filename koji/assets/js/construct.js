@@ -689,7 +689,8 @@ koji.loadMore = {
 			type: 'post',
 			data: {
 				action: 'koji_ajax_load_more',
-				json_data: json_query_args
+				json_data: json_query_args,
+				nonce: koji_ajax_load_more.nonce
 			},
 			success: function( result ) {
 

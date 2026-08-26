@@ -113,7 +113,8 @@ if ( ! function_exists( 'koji_enqueue_scripts' ) ) :
 
 		// AJAX Load More
 		wp_localize_script( 'koji_construct', 'koji_ajax_load_more', array(
-			'ajaxurl'   => esc_url( $ajax_url ),
+			'ajaxurl' => esc_url( $ajax_url ),
+			'nonce'   => wp_create_nonce( 'koji_ajax_load_more_nonce' ),
 		) );
 
 	}
@@ -744,7 +745,50 @@ endif;
 if ( ! function_exists( 'koji_ajax_load_more' ) ) :
 	function koji_ajax_load_more() {
 
-		$query_args = json_decode( wp_unslash( $_POST['json_data'] ), true );
+		check_ajax_referer( 'koji_ajax_load_more_nonce', 'nonce' );
+
+		$raw_args = json_decode( wp_unslash( $_POST['json_data'] ), true );
+
+		if ( ! is_array( $raw_args ) ) {
+			wp_die();
+		}
+
+		// Whitelist only the query vars this feature actually needs.
+		$allowed_keys = array(
+			'paged',
+			'post_type',
+			'posts_per_page',
+			'cat',
+			'category_name',
+			'tag',
+			'author',
+			's',
+			'order',
+			'orderby',
+		);
+
+		$query_args = array();
+		foreach ( $allowed_keys as $key ) {
+			if ( isset( $raw_args[ $key ] ) ) {
+				$query_args[ $key ] = $raw_args[ $key ];
+			}
+		}
+
+		// Restrict post_type to what's actually allowed for preview output.
+		$allowed_post_types = apply_filters( 'koji_allowed_post_types_for_lazy_loading', array( 'post', 'page', 'product', 'jetpack-portfolio', 'any' ) );
+
+		// Default the query_args to post.
+		if ( empty( $query_args['post_type'] ) || is_array( $query_args['post_type'] ) ) {
+			$query_args['post_type'] = 'post';
+		}
+
+		// If we're querying a post type that's not allowed, exit.
+		if ( ! in_array( $query_args['post_type'], $allowed_post_types, true ) ) {
+			wp_die();
+		}
+
+		// Only ever load published posts.
+		$query_args['post_status'] = 'publish';
 
 		$ajax_query = new WP_Query( $query_args );
 
@@ -766,7 +810,7 @@ if ( ! function_exists( 'koji_ajax_load_more' ) ) :
 
 		endif;
 
-		die();
+		wp_die();
 
 	}
 	add_action( 'wp_ajax_nopriv_koji_ajax_load_more', 'koji_ajax_load_more' );

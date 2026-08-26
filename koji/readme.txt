@@ -2,7 +2,7 @@
 Contributors: Anlino
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=anders%40andersnoren%2ese&lc=US&item_name=Free%20WordPress%20Themes%20from%20Anders%20Noren&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted
 Requires at least: 4.5
-Tested up to: 7.0
+Tested up to: 7.1
 Requires PHP: 7.4
 Stable tag: trunk
 License: GPLv2 or later
@@ -91,6 +91,13 @@ Source: https://feathericons.com
 
 
 == Changelog ==
+
+Version 2.2.2 (2026-08-26)
+-------------------------
+- Bumped "Tested up to" to 7.1.
+- Security: Fixed a broken access control vulnerability in the AJAX "load more" handler that could allow unauthenticated users to query and expose non-public content on archive pages.
+- Security: Added nonce verification to the AJAX load more request to prevent forged cross-site requests to the endpoint.
+- NEW: The lazy loading pagination is now limited to a whitelisted set of supported post types. It default to `post`, `page`, `product`, `jetpack-portfolio`, and `any` (search). It can be extended by hooking into the `koji_allowed_post_types_for_lazy_loading` filter.
 
 Version 2.2.1 (2026-08-05)
 -------------------------
